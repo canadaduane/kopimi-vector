@@ -1,26 +1,32 @@
 import dbus
 import gobject
 
-class DeviceAddedListener:
+class DeviceListener:
     def __init__(self):
         self.bus = dbus.SystemBus()
         self.hal_manager_obj = self.bus.get_object(
-                                              "org.freedesktop.Hal", 
-                                              "/org/freedesktop/Hal/Manager")
-        self.hal_manager = dbus.Interface(self.hal_manager_obj,
-                                          "org.freedesktop.Hal.Manager")
+            "org.freedesktop.Hal",
+            "/org/freedesktop/Hal/Manager")
+        self.hal_manager = dbus.Interface(
+            self.hal_manager_obj,
+            "org.freedesktop.Hal.Manager")
 
-        self.hal_manager.connect_to_signal("DeviceAdded", self._filter)
-        self.hal_manager.connect_to_signal("DeviceRemoved", self._filter)
+        self.hal_manager.connect_to_signal("DeviceAdded", self.filter_volumes(self.added))
+        self.hal_manager.connect_to_signal("DeviceRemoved", self.filter_volumes(self.removed))
 
-    def _filter(self, udi):
-        device_obj = self.bus.get_object ("org.freedesktop.Hal", udi)
-        device = dbus.Interface(device_obj, "org.freedesktop.Hal.Device")
+    def filter_volumes(self, callback):
+        def _filter(udi):
+            device_obj = self.bus.get_object ("org.freedesktop.Hal", udi)
+            device = dbus.Interface(device_obj, "org.freedesktop.Hal.Device")
 
-        if device.QueryCapability("volume"):
-            return self.do_something(device)
+            if device.QueryCapability("volume"):
+                return callback(device)
+        return _filter
     
-    def do_something(self, volume):
+    def removed(self, volume):
+        print "Storage device removed"
+    
+    def added(self, volume):
         device_file = volume.GetProperty("block.device")
         label = volume.GetProperty("volume.label")
         fstype = volume.GetProperty("volume.fstype")
