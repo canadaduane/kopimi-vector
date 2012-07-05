@@ -11,6 +11,7 @@ class DeviceAddedListener:
                                           "org.freedesktop.Hal.Manager")
 
         self.hal_manager.connect_to_signal("DeviceAdded", self._filter)
+        self.hal_manager.connect_to_signal("DeviceRemoved", self._filter)
 
     def _filter(self, udi):
         device_obj = self.bus.get_object ("org.freedesktop.Hal", udi)
@@ -30,7 +31,7 @@ class DeviceAddedListener:
         except:
             size = 0
 
-        print "New storage device detectec:"
+        print "New storage device detected:"
         print "  device_file: %s" % device_file
         print "  label: %s" % label
         print "  fstype: %s" % fstype
