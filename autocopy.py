@@ -25,7 +25,7 @@ class DeviceListener:
     
     def removed(self, volume):
         print "Storage device removed"
-    
+
     def added(self, volume):
         device_file = volume.GetProperty("block.device")
         label = volume.GetProperty("volume.label")
@@ -52,5 +52,5 @@ if __name__ == '__main__':
     from dbus.mainloop.glib import DBusGMainLoop
     DBusGMainLoop(set_as_default=True)
     loop = gobject.MainLoop()
-    DeviceAddedListener()
+    DeviceListener()
     loop.run()
